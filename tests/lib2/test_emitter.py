@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import yaml
 
@@ -19,8 +18,8 @@ def test_emitter_on_data(data_filename, canonical_filename, verbose=False):
     events = list(yaml.parse(open(data_filename, 'rb')))
     output = yaml.emit(events)
     if verbose:
-        print("OUTPUT:")
-        print(output)
+        print "OUTPUT:"
+        print output
     new_events = list(yaml.parse(output))
     _compare_events(events, new_events)
 
@@ -31,8 +30,8 @@ def test_emitter_on_canonical(canonical_filename, verbose=False):
     for canonical in [False, True]:
         output = yaml.emit(events, canonical=canonical)
         if verbose:
-            print("OUTPUT (canonical=%s):" % canonical)
-            print(output)
+            print "OUTPUT (canonical=%s):" % canonical
+            print output
         new_events = list(yaml.parse(output))
         _compare_events(events, new_events)
 
@@ -57,8 +56,8 @@ def test_emitter_styles(data_filename, canonical_filename, verbose=False):
                     styled_events.append(event)
                 output = yaml.emit(styled_events)
                 if verbose:
-                    print("OUTPUT (filename=%r, flow_style=%r, style=%r)" % (filename, flow_style, style))
-                    print(output)
+                    print "OUTPUT (filename=%r, flow_style=%r, style=%r)" % (filename, flow_style, style)
+                    print output
                 new_events = list(yaml.parse(output))
                 _compare_events(events, new_events)
 
@@ -90,8 +89,8 @@ def test_emitter_events(events_filename, verbose=False):
     events = list(yaml.load(open(events_filename, 'rb'), Loader=EventsLoader))
     output = yaml.emit(events)
     if verbose:
-        print("OUTPUT:")
-        print(output)
+        print "OUTPUT:"
+        print output
     new_events = list(yaml.parse(output))
     _compare_events(events, new_events)
 

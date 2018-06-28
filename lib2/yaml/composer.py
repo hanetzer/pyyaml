@@ -1,10 +1,9 @@
-from __future__ import absolute_import
 
 __all__ = ['Composer', 'ComposerError']
 
-from .error import MarkedYAMLError
-from .events import *
-from .nodes import *
+from error import MarkedYAMLError
+from events import *
+from nodes import *
 
 class ComposerError(MarkedYAMLError):
     pass
@@ -67,14 +66,14 @@ class Composer(object):
             anchor = event.anchor
             if anchor not in self.anchors:
                 raise ComposerError(None, None, "found undefined alias %r"
-                        % anchor, event.start_mark)
+                        % anchor.encode('utf-8'), event.start_mark)
             return self.anchors[anchor]
         event = self.peek_event()
         anchor = event.anchor
         if anchor is not None:
             if anchor in self.anchors:
                 raise ComposerError("found duplicate anchor %r; first occurrence"
-                        % anchor, self.anchors[anchor].start_mark,
+                        % anchor.encode('utf-8'), self.anchors[anchor].start_mark,
                         "second occurrence", event.start_mark)
         self.descend_resolver(parent, index)
         if self.check_event(ScalarEvent):

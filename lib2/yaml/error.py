@@ -30,7 +30,7 @@ class Mark(object):
                 tail = ' ... '
                 end -= 5
                 break
-        snippet = self.buffer[start:end]
+        snippet = self.buffer[start:end].encode('utf-8')
         return ' '*indent + head + snippet + tail + '\n'  \
                 + ' '*(indent+self.pointer-start+len(head)) + '^'
 

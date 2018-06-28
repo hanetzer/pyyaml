@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import yaml, canonical
 
@@ -8,7 +7,7 @@ def test_canonical_scanner(canonical_filename, verbose=False):
     assert tokens, tokens
     if verbose:
         for token in tokens:
-            print(token)
+            print token
 
 test_canonical_scanner.unittest = ['.canonical']
 
@@ -18,7 +17,7 @@ def test_canonical_parser(canonical_filename, verbose=False):
     assert events, events
     if verbose:
         for event in events:
-            print(event)
+            print event
 
 test_canonical_parser.unittest = ['.canonical']
 
@@ -26,9 +25,9 @@ def test_canonical_error(data_filename, canonical_filename, verbose=False):
     data = open(data_filename, 'rb').read()
     try:
         output = list(yaml.canonical_load_all(data))
-    except yaml.YAMLError as exc:
+    except yaml.YAMLError, exc:
         if verbose:
-            print(exc)
+            print exc
     else:
         raise AssertionError("expected an exception")
 

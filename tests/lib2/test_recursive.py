@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import yaml
 
@@ -24,9 +23,8 @@ class AnInstanceWithState(AnInstance):
         self.foo, self.bar = state['attributes']
 
 def test_recursive(recursive_filename, verbose=False):
-    context = globals().copy()
-    exec(open(recursive_filename, 'rb').read(), context)
-    value1 = context['value']
+    exec open(recursive_filename, 'rb').read()
+    value1 = value
     output1 = None
     value2 = None
     output2 = None
@@ -37,12 +35,12 @@ def test_recursive(recursive_filename, verbose=False):
         assert output1 == output2, (output1, output2)
     finally:
         if verbose:
-            print("VALUE1:", value1)
-            print("VALUE2:", value2)
-            print("OUTPUT1:")
-            print(output1)
-            print("OUTPUT2:")
-            print(output2)
+            #print "VALUE1:", value1
+            #print "VALUE2:", value2
+            print "OUTPUT1:"
+            print output1
+            print "OUTPUT2:"
+            print output2
 
 test_recursive.unittest = ['.recursive']
 

@@ -6,12 +6,14 @@
 # sequence ::= SEQUENCE-START node* SEQUENCE-END
 # mapping ::= MAPPING-START (node node)* MAPPING-END
 
-from __future__ import absolute_import
-
 __all__ = ['Emitter', 'EmitterError']
 
-from .error import YAMLError
-from .events import *
+import sys
+
+from error import YAMLError
+from events import *
+
+has_ucs4 = sys.maxunicode > 0xffff
 
 class EmitterError(YAMLError):
     pass
@@ -161,7 +163,7 @@ class Emitter(object):
 
     def expect_stream_start(self):
         if isinstance(self.event, StreamStartEvent):
-            if self.event.encoding and not hasattr(self.stream, 'encoding'):
+            if self.event.encoding and not getattr(self.stream, 'encoding', None):
                 self.encoding = self.event.encoding
             self.write_stream_start()
             self.state = self.expect_first_document_start
@@ -187,7 +189,8 @@ class Emitter(object):
                 self.write_version_directive(version_text)
             self.tag_prefixes = self.DEFAULT_TAG_PREFIXES.copy()
             if self.event.tags:
-                handles = sorted(self.event.tags.keys())
+                handles = self.event.tags.keys()
+                handles.sort()
                 for handle in handles:
                     prefix = self.event.tags[handle]
                     self.tag_prefixes[prefix] = handle
@@ -548,12 +551,13 @@ class Emitter(object):
         if not handle:
             raise EmitterError("tag handle must not be empty")
         if handle[0] != u'!' or handle[-1] != u'!':
-            raise EmitterError("tag handle must start and end with '!': %r" % handle)
+            raise EmitterError("tag handle must start and end with '!': %r"
+                    % (handle.encode('utf-8')))
         for ch in handle[1:-1]:
             if not (u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z'  \
                     or ch in u'-_'):
                 raise EmitterError("invalid character %r in the tag handle: %r"
-                        % (ch, handle))
+                        % (ch.encode('utf-8'), handle.encode('utf-8')))
         return handle
 
     def prepare_tag_prefix(self, prefix):
@@ -561,11 +565,11 @@ class Emitter(object):
             raise EmitterError("tag prefix must not be empty")
         chunks = []
         start = end = 0
-        if prefix[0] == '!':
+        if prefix[0] == u'!':
             end = 1
         while end < len(prefix):
             ch = prefix[end]
-            if u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z' \
+            if u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z'   \
                     or ch in u'-;/?!:@&=+$,_.~*\'()[]':
                 end += 1
             else:
@@ -586,7 +590,8 @@ class Emitter(object):
             return tag
         handle = None
         suffix = tag
-        prefixes = sorted(self.tag_prefixes.keys())
+        prefixes = self.tag_prefixes.keys()
+        prefixes.sort()
         for prefix in prefixes:
             if tag.startswith(prefix)   \
                     and (prefix == u'!' or len(prefix) < len(tag)):
@@ -596,7 +601,7 @@ class Emitter(object):
         start = end = 0
         while end < len(suffix):
             ch = suffix[end]
-            if u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z' \
+            if u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z'   \
                     or ch in u'-;/?:@&=+$,_.~*\'()[]'   \
                     or (ch == u'!' and handle != u'!'):
                 end += 1
@@ -622,7 +627,7 @@ class Emitter(object):
             if not (u'0' <= ch <= u'9' or u'A' <= ch <= u'Z' or u'a' <= ch <= u'z'  \
                     or ch in u'-_'):
                 raise EmitterError("invalid character %r in the anchor: %r"
-                        % (ch, anchor))
+                        % (ch.encode('utf-8'), anchor.encode('utf-8')))
         return anchor
 
     def analyze_scalar(self, scalar):
@@ -701,7 +706,7 @@ class Emitter(object):
             if not (ch == u'\n' or u'\x20' <= ch <= u'\x7E'):
                 if (ch == u'\x85' or u'\xA0' <= ch <= u'\uD7FF'
                         or u'\uE000' <= ch <= u'\uFFFD'
-                        or u'\U00010000' <= ch < u'\U0010ffff') and ch != u'\uFEFF':
+                        or ((not has_ucs4) or (u'\U00010000' <= ch < u'\U0010ffff'))) and ch != u'\uFEFF':
                     unicode_characters = True
                     if not self.allow_unicode:
                         special_characters = True
@@ -983,7 +988,7 @@ class Emitter(object):
         hints = u''
         if text:
             if text[0] in u' \n\x85\u2028\u2029':
-                hints += str(self.best_indent)
+                hints += unicode(self.best_indent)
             if text[-1] not in u'\n\x85\u2028\u2029':
                 hints += u'-'
             elif len(text) == 1 or text[-2] in u'\n\x85\u2028\u2029':
